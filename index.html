@@ -1,13 +1,144 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vue-project01</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录模块（无样式）</title>
+    <!-- 无任何样式，纯功能 -->
+</head>
+<body>
+    <!-- 登录卡片：无样式，仅功能 -->
+    <div>
+        <div>
+            <div>📚</div>
+            <h1>图书管理系统</h1>
+            <p>登录以管理你的私人书库</p>
+        </div>
+
+        <form id="loginForm" action="javascript:void(0);">
+            <div>
+                <label>账号 / 用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名" autocomplete="username" value="admin">
+            </div>
+            <div>
+                <label>密码</label>
+                <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password" value="123456">
+            </div>
+
+            <div>
+                <label>
+                    <input type="checkbox" id="rememberCheck"> 记住账号
+                </label>
+                <a href="#" id="forgotPwd">忘记密码？</a>
+            </div>
+
+            <button type="submit" id="loginBtn">登录</button>
+            <div id="msgArea">✨ 演示账号: admin / 123456</div>
+        </form>
+        <div>
+            ⚡ 极简登录模块 · 模拟验证 (前端演示)
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 模拟账号数据
+            const DEMO_ACCOUNTS = [
+                { username: 'admin', password: '123456' },
+                { username: 'lib_user', password: 'book2024' },
+                { username: 'reader', password: 'read001' }
+            ];
+
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const rememberCheck = document.getElementById('rememberCheck');
+            const loginForm = document.getElementById('loginForm');
+            const msgDiv = document.getElementById('msgArea');
+
+            function showMessage(text, isError = false) {
+                msgDiv.textContent = text;
+                // 简单清除样式类（无样式，但保留内容变化）
+                setTimeout(() => {
+                    if (msgDiv.textContent === text) {
+                        msgDiv.textContent = '✨ 演示账号: admin / 123456';
+                    }
+                }, 2500);
+            }
+
+            function validateLogin(username, password) {
+                if (!username.trim() || !password.trim()) {
+                    showMessage('❌ 用户名和密码都不能为空', true);
+                    return false;
+                }
+                const matched = DEMO_ACCOUNTS.find(acc => acc.username === username.trim() && acc.password === password);
+                if (matched) {
+                    return true;
+                } else {
+                    showMessage('❌ 用户名或密码错误，请重试', true);
+                    return false;
+                }
+            }
+
+            function saveRememberedUser(username) {
+                if (rememberCheck.checked && username) {
+                    localStorage.setItem('lib_remember_user', username.trim());
+                    localStorage.setItem('lib_remember_flag', 'true');
+                } else {
+                    localStorage.removeItem('lib_remember_user');
+                    localStorage.setItem('lib_remember_flag', 'false');
+                }
+            }
+
+            function loadRememberedUser() {
+                const flag = localStorage.getItem('lib_remember_flag');
+                const savedUser = localStorage.getItem('lib_remember_user');
+                if (flag === 'true' && savedUser) {
+                    usernameInput.value = savedUser;
+                    rememberCheck.checked = true;
+                    passwordInput.focus();
+                } else {
+                    rememberCheck.checked = false;
+                }
+            }
+
+            function handleLoginSuccess(username) {
+                sessionStorage.setItem('lib_logged_in', 'true');
+                sessionStorage.setItem('lib_logged_user', username);
+                showMessage(`✅ 登录成功！欢迎 ${username}，即将跳转至图书管理...`);
+                setTimeout(() => {
+                    alert(`登录成功！演示跳转。实际项目中会跳转到管理页面。\n当前用户：${username}`);
+                    // 可选重置提示
+                    msgDiv.textContent = '✨ 演示账号: admin / 123456';
+                }, 800);
+            }
+
+            // 登录提交
+            function onLogin(e) {
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+                if (validateLogin(username, password)) {
+                    saveRememberedUser(username);
+                    handleLoginSuccess(username);
+                } else {
+                    // 验证失败时也保存记住选项（但不保存错误账号？按逻辑：不保存未成功登录的账号）
+                    // 但为防止误存，只有登录成功才保存记住账号，失败时清除记住标志也可，但随意。保持简洁
+                    if (!rememberCheck.checked) {
+                        localStorage.removeItem('lib_remember_user');
+                        localStorage.setItem('lib_remember_flag', 'false');
+                    }
+                }
+            }
+
+            // 忘记密码提示
+            document.getElementById('forgotPwd').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('演示模式：请联系管理员重置密码，或使用 demo 账号：admin/123456');
+            });
+
+            loginForm.addEventListener('submit', onLogin);
+            // 加载记住的用户
+            loadRememberedUser();
+        })();
+    </script>
+</body>
 </html>
